@@ -15,10 +15,24 @@ const pool = new Pool({
   ssl: isProduction && !isLocalhost ? { rejectUnauthorized: false } : undefined,
 });
 
+pool.on('error', (err) => {
+  console.error('Unexpected error on idle PostgreSQL client:', err);
+});
+
 const adapter = new PrismaPg(pool);
 
 // Single instance of Prisma Client configured with PostgreSQL adapter
 const prisma = new PrismaClient({ adapter });
+
+// Asynchronously test DB connection on boot without crashing the server
+(async () => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    console.log('✅ PostgreSQL Database connected successfully');
+  } catch (err: any) {
+    console.warn('⚠️ PostgreSQL connection initialized (will reconnect on query):', err.message || err);
+  }
+})();
 
 export default prisma;
 
