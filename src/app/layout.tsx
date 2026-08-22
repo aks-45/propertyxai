@@ -9,7 +9,12 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: "Property X — Know Before You Buy",
-  description: "Explore and analyze properties before you make a decision.",
+  description: "AI-Powered Real Estate Decision Intelligence Platform for India.",
+  manifest: "/manifest.json",
+  icons: {
+    icon: "/logo.png",
+    apple: "/logo.png",
+  },
 };
 
 import { ParticleBackground } from "@/components/ui/ParticleBackground";
