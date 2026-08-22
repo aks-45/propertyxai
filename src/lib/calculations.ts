@@ -1,4 +1,12 @@
 export function formatINR(amount: number): string {
+  if (amount >= 10000000) {
+    const cr = amount / 10000000;
+    return `₹${Number.isInteger(cr) ? cr : cr.toFixed(2)} Cr`;
+  }
+  if (amount >= 100000) {
+    const lk = amount / 100000;
+    return `₹${Number.isInteger(lk) ? lk : lk.toFixed(2)} Lakh`;
+  }
   return new Intl.NumberFormat('en-IN', {
     style: 'currency',
     currency: 'INR',
@@ -8,10 +16,12 @@ export function formatINR(amount: number): string {
 
 export function formatCompactINR(amount: number): string {
   if (amount >= 10000000) {
-    return `₹${(amount / 10000000).toFixed(2)}Cr`;
+    const cr = amount / 10000000;
+    return `₹${Number.isInteger(cr) ? cr : cr.toFixed(1)}Cr`;
   }
   if (amount >= 100000) {
-    return `₹${(amount / 100000).toFixed(2)}L`;
+    const lk = amount / 100000;
+    return `₹${Number.isInteger(lk) ? lk : lk.toFixed(1)}L`;
   }
   return formatINR(amount);
 }
@@ -47,3 +57,23 @@ export function getRecommendationColor(rec: string): string {
     default: return 'text-gray-600 bg-gray-50';
   }
 }
+
+export function getScoreDescription(score: number, rec?: string): string {
+  if (score >= 85) {
+    return 'Outstanding investment potential with exceptional financial affordability and strong capital growth outlook.';
+  }
+  if (score >= 75) {
+    return 'This property has strong potential with healthy projected returns and comfortable financial feasibility.';
+  }
+  if (score >= 65) {
+    return 'Decent investment with balanced fundamentals, though careful negotiation on price and loan terms is advised.';
+  }
+  if (score >= 50) {
+    return 'Moderate potential. Stretched financial commitments or pending infrastructure suggest waiting for better entry terms.';
+  }
+  if (score >= 35) {
+    return 'High financial strain or sub-par growth indicators. Renting or exploring alternative localities is strongly recommended.';
+  }
+  return 'Critical financial insolvency risk or severe acquisition shortfall. Purchasing under current terms poses high debt risk.';
+}
+

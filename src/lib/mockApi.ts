@@ -13,11 +13,11 @@ export const locationService = {
   searchLocations: async (query: string): Promise<LocationDetails[]> => {
     await delay(300);
     const q = query.toLowerCase();
-    return mockLocations.filter((loc: any) => loc.address.toLowerCase().includes(q) || loc.city.toLowerCase().includes(q));
+    return mockLocations.filter((loc: LocationDetails) => loc.address.toLowerCase().includes(q) || loc.city.toLowerCase().includes(q));
   },
   getLocationDetails: async (address: string): Promise<LocationDetails | undefined> => {
     await delay(200);
-    return mockLocations.find((loc: any) => loc.address === address);
+    return mockLocations.find((loc: LocationDetails) => loc.address === address);
   }
 };
 
@@ -54,7 +54,7 @@ export const analysisService = {
 };
 
 export const aiService = {
-  getBreakDecision: async (analysisId: string): Promise<BreakDecisionItem[]> => {
+  getBreakDecision: async (_analysisId: string): Promise<BreakDecisionItem[]> => {
     await delay(1500);
     return [
       { id: 'bd1', category: 'good', title: 'Excellent Connectivity', description: 'Close to major highways and metro stations.', severity: 'high' },

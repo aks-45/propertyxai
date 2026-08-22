@@ -1,11 +1,12 @@
 import { AnalysisResult, BreakDecisionItem, CostEstimation, FutureProjection, RiskItem } from '../types/analysis';
 import { PropertyInput, NearbyPlace } from '../types/property';
-import { calculatePropertyScore, getRecommendation } from '../lib/scoring';
+import { calculatePropertyScore, getRecommendation, calculateCommuteMetrics } from '../lib/scoring';
 import { calculateEMI } from '../lib/calculations';
 
 export function generateMockAnalysis(input: PropertyInput): AnalysisResult {
   const scores = calculatePropertyScore(input);
   const recData = getRecommendation(scores);
+  const commute = calculateCommuteMetrics(input);
   
   const propertyPrice = input.price;
   const stampDuty = propertyPrice * 0.06;
@@ -22,8 +23,13 @@ export function generateMockAnalysis(input: PropertyInput): AnalysisResult {
   const annualCost = monthlyTotal * 12 + (propertyPrice * 0.005);
   const fiveYearCost = annualCost * 5;
 
+  const monthlySalary = input.monthlySalary || 120000;
+  const monthlyExpenses = input.monthlyExpenses || 40000;
+  const availableIncome = input.availableIncome ?? Math.max(0, monthlySalary - monthlyExpenses);
+
   const costEstimation: CostEstimation = {
-    propertyPrice, stampDuty, registration, legalCharges, interiorCost, totalInitialCost, monthlyEMI, monthlyMaintenance, monthlyTotal, annualCost, fiveYearCost
+    propertyPrice, stampDuty, registration, legalCharges, interiorCost, totalInitialCost, monthlyEMI, monthlyMaintenance, monthlyTotal, annualCost, fiveYearCost,
+    monthlySalary, monthlyExpenses, availableIncome
   };
 
   const futureProjections: FutureProjection[] = [
@@ -42,6 +48,24 @@ export function generateMockAnalysis(input: PropertyInput): AnalysisResult {
     { id: 'r5', category: 'Financial', level: 'medium', title: 'Interest Rates', description: 'Home loan interest rates might increase.' }
   ];
 
+  if (commute.rating === 'EXCESSIVE') {
+    risks.unshift({
+      id: 'r_commute',
+      category: 'Commute',
+      level: 'high',
+      title: 'Excessive Travel Distance',
+      description: `Workplace (${commute.workLocation}) is ${commute.distanceText} (${commute.durationText}) away, adding ~${commute.annualCommuteHours} hrs/yr in transit.`
+    });
+  } else if (commute.rating === 'STRETCHED') {
+    risks.unshift({
+      id: 'r_commute',
+      category: 'Commute',
+      level: 'medium',
+      title: 'Long Work Commute',
+      description: `Daily one-way travel of ${commute.distanceText} (${commute.durationText}) to ${commute.workLocation} requires high daily transit time.`
+    });
+  }
+
   const breakDecision: BreakDecisionItem[] = [
     { id: 'bd1', category: 'good', title: 'Excellent Connectivity', description: 'Close to major highways and metro stations.', severity: 'high' },
     { id: 'bd2', category: 'good', title: 'Appreciation Potential', description: 'Upcoming IT park within 5km radius.', severity: 'medium' },
@@ -50,6 +74,24 @@ export function generateMockAnalysis(input: PropertyInput): AnalysisResult {
     { id: 'bd5', category: 'assumption', title: 'Stable Job Market', description: 'Assuming the local IT sector continues to grow.', severity: 'low' },
     { id: 'bd6', category: 'uncertainty', title: 'Policy Changes', description: 'Potential changes in local zoning laws.', severity: 'medium' }
   ];
+
+  if (commute.rating === 'EXCESSIVE') {
+    breakDecision.unshift({
+      id: 'bd_commute',
+      category: 'risk',
+      title: 'Excessive Work Commute Risk',
+      description: `Living here requires daily 2.5+ hour roundtrip commute to ${commute.workLocation}. Consider looking closer to work or renting near your office.`,
+      severity: 'high'
+    });
+  } else if (commute.rating === 'EXCELLENT' && commute.workLocation) {
+    breakDecision.unshift({
+      id: 'bd_commute',
+      category: 'good',
+      title: 'Optimal Office Proximity',
+      description: `Just ${commute.distanceText} (${commute.durationText}) from ${commute.workLocation}, saving ~1.5 hours daily.`,
+      severity: 'low'
+    });
+  }
 
   const nearbyPlaces: NearbyPlace[] = [
     { name: 'Delhi Public School', type: 'School', distance: '1.2 km', distanceKm: 1.2, icon: 'school' },
@@ -62,6 +104,25 @@ export function generateMockAnalysis(input: PropertyInput): AnalysisResult {
     { name: 'Indian Oil', type: 'Petrol Pump', distance: '0.7 km', distanceKm: 0.7, icon: 'fuel' }
   ];
 
+  const reasons = [
+    'Strong historical price appreciation in this area.',
+    'Excellent connectivity to major employment hubs.',
+    'Well-developed social infrastructure nearby.'
+  ];
+
+  if (commute.rating === 'EXCELLENT' && commute.workLocation) {
+    reasons.unshift(`Exceptional workplace proximity: ${commute.distanceText} (${commute.durationText}) to ${commute.workLocation}.`);
+  }
+
+  const potentialRisks = [
+    'Upcoming supply might affect rental yields.',
+    'Traffic congestion during peak hours.'
+  ];
+
+  if (commute.rating === 'EXCESSIVE') {
+    potentialRisks.unshift(`Extreme daily commute (${commute.distanceText} / ${commute.durationText}) to ${commute.workLocation} adds ~${commute.annualCommuteHours} hrs/yr in transit.`);
+  }
+
   return {
     id: `an_${Date.now()}`,
     propertyInput: input,
@@ -73,15 +134,9 @@ export function generateMockAnalysis(input: PropertyInput): AnalysisResult {
     risks,
     breakDecision,
     nearbyPlaces,
-    reasonsForRecommendation: [
-      'Strong historical price appreciation in this area.',
-      'Excellent connectivity to major employment hubs.',
-      'Well-developed social infrastructure nearby.'
-    ],
-    potentialRisks: [
-      'Upcoming supply might affect rental yields.',
-      'Traffic congestion during peak hours.'
-    ],
+    reasonsForRecommendation: reasons,
+    potentialRisks,
+    commuteAnalysis: commute,
     createdAt: new Date().toISOString()
   };
 }

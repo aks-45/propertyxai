@@ -1,7 +1,10 @@
 export const STORAGE_KEYS = {
   USER_PREFS: 'px_user_prefs',
   SAVED_REPORTS: 'px_saved_reports',
-  RECENT_SEARCHES: 'px_recent_searches'
+  RECENT_SEARCHES: 'px_recent_searches',
+  CURRENT_ANALYSIS: 'px_current_analysis',
+  PROPERTY_INPUT: 'px_property_input',
+  CURRENT_INPUT: 'px_current_input',
 };
 
 export function saveToStorage<T>(key: string, value: T): void {

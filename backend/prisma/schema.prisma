@@ -1,0 +1,126 @@
+// Prisma schema for Property X AI
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                String            @id @default(uuid())
+  email             String            @unique
+  password          String
+  name              String
+  phone             String?
+  currentState      String?
+  currentCity       String?
+  residencyStatus   String?
+  familySize        Int?
+  purposeOfProperty String?
+  workplaceLocation String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  financialProfile  FinancialProfile?
+  properties        Property[]
+  analyses          Analysis[]
+
+  @@map("users")
+}
+
+model FinancialProfile {
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  monthlyIncome Int?
+  expenditures  Json?
+  savings       Json?
+  existingEmi   Int?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("financial_profiles")
+}
+
+model Property {
+  id                 String     @id @default(uuid())
+  userId             String
+  user               User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  address            String
+  state              String?
+  city               String?
+  district           String?
+  latitude           Float?
+  longitude          Float?
+  propertyType       String?
+  purchasePurpose    String?
+  price              Float?
+  area               Float?
+  areaUnit           String?
+  constructionStatus String?
+  newOrResale        String?
+  builderSellerType  String?
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+  analyses           Analysis[]
+
+  @@index([userId])
+  @@index([address])
+  @@map("properties")
+}
+
+model Analysis {
+  id                String   @id @default(uuid())
+  userId            String
+  propertyId        String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  property          Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  financialSnapshot Json?
+  locationSnapshot  Json?
+  scores            Json?
+  decision          String?
+  confidence        Int?
+  aiExplanation     Json?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([userId])
+  @@index([propertyId])
+  @@index([createdAt])
+  @@map("analyses")
+}
+
+model LocationCache {
+  id          String   @id @default(uuid())
+  requestType String
+  requestKey  String
+  response    Json?
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([requestType, requestKey])
+  @@index([expiresAt])
+  @@map("location_cache")
+}
+
+model GovernmentGuidance {
+  id                       String    @id @default(uuid())
+  buyerState               String
+  propertyState            String
+  propertyType             String?
+  transactionType          String?
+  interstatePurchaseStatus String?
+  relevantDocuments        Json?
+  procedureSteps           Json?
+  stateSpecificWarnings    Json?
+  officialResources        Json?
+  lastVerifiedAt           DateTime?
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+
+  @@unique([buyerState, propertyState, propertyType, transactionType])
+  @@index([lastVerifiedAt])
+  @@map("government_guidance")
+}

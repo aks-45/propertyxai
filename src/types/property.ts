@@ -24,6 +24,37 @@ export interface PropertyInput {
   floor: string;
   amenities: string[];
   moveTimeline: MoveTimeline;
+  monthlySalary?: number;
+  monthlyExpenses?: number;
+  availableIncome?: number;
+  expenditures?: Record<string, FinancialItem>;
+  savings?: Record<string, FinancialItem>;
+  workLocation?: string;
+  familySize?: string;
+  paymentMode?: string;
+  rentFrequency?: string;
+  details?: {
+    age?: string;
+    floor?: string;
+    amenities?: string[];
+    timeline?: string;
+    income?: string;
+    familySize?: string;
+    workLocation?: string;
+    paymentMode?: string;
+    rentFrequency?: string;
+    targetRent?: string;
+    tenantProfile?: string;
+    bhkConfig?: string;
+    constructionStatus?: string;
+  };
+}
+
+export type FinancialFieldStatus = 'amount' | 'unknown' | 'none';
+
+export interface FinancialItem {
+  status: FinancialFieldStatus;
+  amount?: number;
 }
 
 export interface NearbyPlace {
@@ -32,6 +63,10 @@ export interface NearbyPlace {
   distance: string;
   distanceKm: number;
   icon: string;
+  address?: string;
+  phone?: string;
+  rating?: number;
+  placeId?: string;
 }
 
 export interface PropertyListing {
