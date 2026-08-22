@@ -3,13 +3,18 @@ import { PropertyInput } from '@/types/property';
 import { AnalysisResult } from '@/types/analysis';
 
 const getApiBaseUrl = () => {
-  if (process.env.NEXT_PUBLIC_API_URL) {
-    let url = process.env.NEXT_PUBLIC_API_URL.trim();
-    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+  let url = process.env.NEXT_PUBLIC_API_URL?.trim();
+
+  if (url) {
+    // If Render injected internal service name like "property-x-backend" without full domain
+    if (!url.includes('.') && !url.includes('localhost') && !url.includes('127.0.0.1')) {
+      url = `https://${url}.onrender.com`;
+    } else if (!url.startsWith('http://') && !url.startsWith('https://')) {
       url = `https://${url}`;
     }
     return url.replace(/\/$/, '');
   }
+
   if (typeof window !== 'undefined' && window.location.hostname) {
     if (window.location.hostname.includes('onrender.com')) {
       return 'https://property-x-backend.onrender.com';
