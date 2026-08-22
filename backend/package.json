@@ -6,8 +6,9 @@
   "scripts": {
     "dev": "ts-node src/app.ts",
     "build": "npx prisma generate && tsc",
-    "start": "node dist/src/app.js",
+    "start": "npx prisma db push --accept-data-loss && node dist/src/app.js",
     "prisma:generate": "npx prisma generate",
+    "prisma:push": "npx prisma db push --accept-data-loss",
     "prisma:migrate": "npx prisma migrate deploy",
     "test": "npm run build && node --test dist/src/__tests__/*.test.js"
   },
